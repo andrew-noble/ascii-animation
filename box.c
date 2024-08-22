@@ -2,12 +2,10 @@
 #include <unistd.h>
 #include <string.h>
 
-
-
 //create a simple cube animation where a A x A cube gets drawn, clockwise
 
 //declare an array of ANSI escape codes that move the cursor right, down, left, and up, in sequence
-//(this is not ** because we know the length of the strings at compile time!) youd need ** if it was not known like this.
+//(this is not ** because we know the length of the strings at compile time!) youd need ** if it was not known like this and you knew you had an array of unknown length holding strings of unknown length
 const char* dir[4] = {"\e[C","\e[B","\e[D","\e[A"};
 
 //instantiate variable len
@@ -27,7 +25,7 @@ int main() {
     int i; //iterator outer
     int j; //outer iterator
 
-    printf("How long do you want the sides of the square to be?\n");
+    printf("How long do you want the sides of the box to be?\n");
     scanf("%d", &len); //to scanf, I pass a format string to indicate we're receiving a digit, and a reference of len, which scanf will load w/ user input
 
     // Hide cursor
