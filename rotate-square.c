@@ -48,16 +48,17 @@ void populate(int arr[LEN * LEN][2]) {
     return;
 }
 
-void paint(int arr[LEN*4][2]) {
+void paint(int arr[LEN*LEN][2]) {
     printf("\e[2J"); //clear entire screen
 
     //TODO: command to move the cursor to desired origin
     printf("\e[%d;%dH", ORIGIN_L, ORIGIN_C);
 
     for (int i = 0; i < LEN * LEN; i++) { //loop through points
-        printf("\e[%d;%dH", arr[i][1] + ORIGIN_L, arr[i][0] + ORIGIN_C); //move cursor to line:column and print, and we pass in the current coordinate from coords, relative to origin
-        putchar('.');
+        printf("\e[%d;%dH", arr[i][1] + ORIGIN_L, (arr[i][0] + ORIGIN_C) * 2); //move cursor to line:column and print, and we pass in the current coordinate from coords, relative to origin
+        printf("# ");
         fflush(stdout);
+        usleep(10000);
     }
 
     return;
