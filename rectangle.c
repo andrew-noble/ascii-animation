@@ -29,7 +29,7 @@ int main() {
     scanf("%d", &height); 
 
     // Hide cursor
-    // printf("\e[?25l"); 
+    printf("\e[?25l"); 
 
     for (i = 0; i < height; i++) {
         for (j = 0; j < width; j++) {
