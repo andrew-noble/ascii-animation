@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <math.h>
 
 #define LEN 16 //side LENgth of square
-#define ORIGIN_L 12
+#define ORIGIN_L 30
 #define ORIGIN_C 40
 
 //desired functionality:
@@ -20,29 +21,36 @@
 
 void populate(int arr[LEN * LEN][2]);
 void paint(int arr[LEN * LEN][2]);
+void rotate(int arr[LEN * LEN][2], double th);
 
 
 int main() {
     int coords[LEN * LEN][2];
+    double theta = 0.0;
 
-    printf("\e[?25l"); //hide cursor
-
+    // printf("\e[?25l"); //hide cursor
     populate(coords);
-    paint(coords);
 
-    printf("\e[?25h\n"); //show cursor
+    while (1) {
+        rotate(coords, theta);
+        paint(coords);
+        usleep(1000000);
+        theta += 0.087; //increment theta about 5deg
+    }
+
+    // printf("\e[?25h\n"); //show cursor
 
     return 0;
 }
 
 void populate(int arr[LEN * LEN][2]) {
-    for (int pt = 0; pt < LEN * LEN; pt++) { //loop 16 times to create 16 different x-y pairs
-        arr[pt][0] = pt % LEN; //produces a cycle through 0,1,2,3,0,1,2...
+    for (int i = 0; i < LEN * LEN; i++) { //loop 16 times to create 16 different x-y pairs
+        arr[i][0] = i % LEN; //produces a cycle through 0,1,2,3,0,1,2...
 
         //took me an eternity to figure this out. Here, we intentionally ignore the remainder through integer division. Effectively doing a "floor division".
-        arr[pt][1] = (pt / LEN);  //prodcuces 0000111122223333
+        arr[i][1] = (i / LEN);  //prodcuces 0000111122223333
 
-        // printf("x, y for pt %d: %d, %d\n", pt, arr[pt][0], arr[pt][1]);
+        // printf("x, y for i %d: %d, %d\n", i, arr[i][0], arr[i][1]);
     }
 
     return;
@@ -50,18 +58,28 @@ void populate(int arr[LEN * LEN][2]) {
 
 void paint(int arr[LEN*LEN][2]) {
     printf("\e[2J"); //clear entire screen
-
-    //TODO: command to move the cursor to desired origin
-    printf("\e[%d;%dH", ORIGIN_L, ORIGIN_C);
+    printf("\e[%d;%dH", ORIGIN_L, ORIGIN_C); //move to center-ish origin
 
     for (int i = 0; i < LEN * LEN; i++) { //loop through points
         printf("\e[%d;%dH", arr[i][1] + ORIGIN_L, (arr[i][0] + ORIGIN_C) * 2); //move cursor to line:column and print, and we pass in the current coordinate from coords, relative to origin
         printf("# ");
         fflush(stdout);
-        usleep(10000);
+
     }
 
     return;
 }
 
-int rotate() {}
+void rotate(int arr[LEN*LEN][2], double th) {
+    for (int i = 0; i < LEN*LEN; i++) {
+        int x = arr[i][0]; //store before modifying
+        int y = arr[i][1];
+
+        arr[i][0] = x*cos(th) - y*sin(th);
+        arr[i][1] = x*sin(th) - y*cos(th);
+
+        // printf("x, y for pt %d: %d, %d\n", i, arr[i][0], arr[i][1]);
+
+    }
+    return;
+}
