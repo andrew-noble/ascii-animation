@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
+#include <signal.h>
+#include <stdlib.h>
 
 #define LEN 16 //side LENgth of square
 #define ORIGIN_L 30
@@ -21,14 +23,17 @@
 
 void populate(int arr[LEN * LEN][2]);
 void paint(int arr[LEN * LEN][2]);
-void rotate(int arr[LEN * LEN][2], double th);
+void rotate(int arr[LEN * LEN][2], float th);
+void sigint_handler(int sig);
 
 
 int main() {
     int coords[LEN * LEN][2];
-    double theta = 0.0;
+    float theta = 0.0;
 
-    // printf("\e[?25l"); //hide cursor
+    signal(SIGINT, sigint_handler); //set up sigint handler for cleaner program quits
+
+    printf("\e[?25l"); //hide cursor
     populate(coords);
 
     while (1) {
@@ -38,7 +43,7 @@ int main() {
         theta += 0.087; //increment theta about 5deg
     }
 
-    // printf("\e[?25h\n"); //show cursor
+    printf("\e[?25h\n"); //show cursor
 
     return 0;
 }
@@ -70,9 +75,9 @@ void paint(int arr[LEN*LEN][2]) {
     return;
 }
 
-void rotate(int arr[LEN*LEN][2], double th) {
+void rotate(int arr[LEN*LEN][2], float th) {
     for (int i = 0; i < LEN*LEN; i++) {
-        int x = arr[i][0]; //store before modifying
+        int x = arr[i][0]; //precalculate before using to do math
         int y = arr[i][1];
 
         arr[i][0] = x*cos(th) - y*sin(th);
@@ -82,4 +87,11 @@ void rotate(int arr[LEN*LEN][2], double th) {
 
     }
     return;
+}
+
+void sigint_handler(int sig) {
+    printf("Caught SIGINT (Ctrl+C)");
+    printf("\e[2J\e[H\e[?25h"); //clear entire screen, move cursor home, show cursor
+
+    exit(0);
 }
