@@ -6,14 +6,14 @@
 #include <stdlib.h>
 
 #define LEN 16 //side LENgth of square
-#define ORIGIN_L 30
-#define ORIGIN_C 40
+#define ORIGIN_L 30 //row
+#define ORIGIN_C 40 //column
 
 #ifndef  M_PI
 #define  M_PI  3.1415926535897932384626433
 #endif
 
-#define theta_increment (M_PI / 45.0) // 1 degree in radians
+#define theta_increment (M_PI / 225.0) //1 deg
 
 //desired functionality:
     //rotates a 2D square (of fixed size, for now), about its, lets say, bottom left hand corner. 15 ccw degrees per frame
@@ -36,22 +36,23 @@ void sigint_handler(int sig);
 int main() {
     float coords[LEN * LEN][2];
     float theta = 0.0;
+    int frame = 0;
 
     signal(SIGINT, sigint_handler); //set up sigint handler for cleaner program quits
 
     printf("\e[?25l"); //hide cursor
     populate(coords);
 
-    while (1) {
+    while (frame < 60) {
         rotate(coords, theta);
         render(coords);
         usleep(100000);
-        theta += theta_increment;
+        theta = (frame * theta_increment);
         if (theta >= 2 * M_PI) theta -= 2 * M_PI; // Reset theta after a full rotation
-
+        frame++;
     }
 
-    printf("\e[?25h\n"); //show cursor
+    sigint_handler(SIGINT);
 
     return 0;
 }
@@ -72,15 +73,13 @@ void populate(float arr[LEN * LEN][2]) {
 
 void render(float arr[LEN*LEN][2]) { //this is where virtual float coords get converted into integers for terminal coordinates.
     printf("\e[2J"); //clear entire screen
-    printf("\e[%d;%dH", ORIGIN_L, ORIGIN_C); //move cursor to center-ish origin
-
 
     for (int i = 0; i < LEN * LEN; i++) { //loop through points
         int x = (int)roundf(arr[i][0]) + ORIGIN_C; //cast the float coords to integers for rendering
         int y = (int)roundf(arr[i][1]) + ORIGIN_L;
 
-        printf("\e[0m\e[%d;%dH", y, x * 2); //move cursor to line:column and print, and we pass in the current coordinate from coords, relative to origin
-        printf("# ");
+        printf("\e[%d;%dH", y, x * 2); //x is doubled to account for tall aspect ratio of ASCII chars, otherwise we'd draw a rectangle
+        printf("#");
         fflush(stdout);
     }
     return;
