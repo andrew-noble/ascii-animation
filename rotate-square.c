@@ -9,6 +9,12 @@
 #define ORIGIN_L 30
 #define ORIGIN_C 40
 
+#ifndef  M_PI
+#define  M_PI  3.1415926535897932384626433
+#endif
+
+#define theta_increment (M_PI / 45.0) // 1 degree in radians
+
 //desired functionality:
     //rotates a 2D square (of fixed size, for now), about its, lets say, bottom left hand corner. 15 ccw degrees per frame
 
@@ -21,14 +27,14 @@
         //call rotate function, passing it a ref to the array
         //sleep
 
-void populate(int arr[LEN * LEN][2]);
-void paint(int arr[LEN * LEN][2]);
-void rotate(int arr[LEN * LEN][2], float th);
+void populate(float arr[LEN * LEN][2]);
+void render(float arr[LEN * LEN][2]);
+void rotate(float arr[LEN * LEN][2], float th);
 void sigint_handler(int sig);
 
 
 int main() {
-    int coords[LEN * LEN][2];
+    float coords[LEN * LEN][2];
     float theta = 0.0;
 
     signal(SIGINT, sigint_handler); //set up sigint handler for cleaner program quits
@@ -38,9 +44,11 @@ int main() {
 
     while (1) {
         rotate(coords, theta);
-        paint(coords);
-        usleep(1000000);
-        theta += 0.087; //increment theta about 5deg
+        render(coords);
+        usleep(100000);
+        theta += theta_increment;
+        if (theta >= 2 * M_PI) theta -= 2 * M_PI; // Reset theta after a full rotation
+
     }
 
     printf("\e[?25h\n"); //show cursor
@@ -48,12 +56,13 @@ int main() {
     return 0;
 }
 
-void populate(int arr[LEN * LEN][2]) {
+//sets up a list of x-y coordinate pairs
+void populate(float arr[LEN * LEN][2]) {
     for (int i = 0; i < LEN * LEN; i++) { //loop 16 times to create 16 different x-y pairs
-        arr[i][0] = i % LEN; //produces a cycle through 0,1,2,3,0,1,2...
+        arr[i][0] = fmod(i, LEN); //produces a cycle through 0,1,2,3,0,1,2... (but in floats via float modulus)
 
-        //took me an eternity to figure this out. Here, we intentionally ignore the remainder through integer division. Effectively doing a "floor division".
-        arr[i][1] = (i / LEN);  //prodcuces 0000111122223333
+        //took me an eternity to figure this out. Here, we intentionally ignore the remainder through floor division.
+        arr[i][1] = floor(i / LEN);  //prodcuces 0000111122223333 (but in floats)
 
         // printf("x, y for i %d: %d, %d\n", i, arr[i][0], arr[i][1]);
     }
@@ -61,27 +70,29 @@ void populate(int arr[LEN * LEN][2]) {
     return;
 }
 
-void paint(int arr[LEN*LEN][2]) {
+void render(float arr[LEN*LEN][2]) { //this is where virtual float coords get converted into integers for terminal coordinates.
     printf("\e[2J"); //clear entire screen
-    printf("\e[%d;%dH", ORIGIN_L, ORIGIN_C); //move to center-ish origin
+    printf("\e[%d;%dH", ORIGIN_L, ORIGIN_C); //move cursor to center-ish origin
+
 
     for (int i = 0; i < LEN * LEN; i++) { //loop through points
-        printf("\e[%d;%dH", arr[i][1] + ORIGIN_L, (arr[i][0] + ORIGIN_C) * 2); //move cursor to line:column and print, and we pass in the current coordinate from coords, relative to origin
+        int x = (int)roundf(arr[i][0]) + ORIGIN_C; //cast the float coords to integers for rendering
+        int y = (int)roundf(arr[i][1]) + ORIGIN_L;
+
+        printf("\e[0m\e[%d;%dH", y, x * 2); //move cursor to line:column and print, and we pass in the current coordinate from coords, relative to origin
         printf("# ");
         fflush(stdout);
-
     }
-
     return;
 }
 
-void rotate(int arr[LEN*LEN][2], float th) {
+void rotate(float arr[LEN*LEN][2], float th) {
     for (int i = 0; i < LEN*LEN; i++) {
-        int x = arr[i][0]; //precalculate before using to do math
-        int y = arr[i][1];
+        float x = arr[i][0]; //precalculate before using to do math
+        float y = arr[i][1];
 
-        arr[i][0] = x*cos(th) - y*sin(th);
-        arr[i][1] = x*sin(th) - y*cos(th);
+        arr[i][0] = x*cosf(th) - y*sinf(th); 
+        arr[i][1] = x*sinf(th) + y*cosf(th);
 
         // printf("x, y for pt %d: %d, %d\n", i, arr[i][0], arr[i][1]);
 
