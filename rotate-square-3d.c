@@ -5,6 +5,8 @@
 #include <signal.h>
 #include <stdlib.h>
 
+//rotate a single square in 3D space
+
 const int len = 20; //screen is 30 units wide
 float A = 0.0;
 float B = 0.0;
