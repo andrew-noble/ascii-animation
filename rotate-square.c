@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #define LEN 16 //side LENgth of square
-#define ORIGIN_L 30 //row
+#define ORIGIN_L 40 //row
 #define ORIGIN_C 40 //column
 
 #ifndef  M_PI
