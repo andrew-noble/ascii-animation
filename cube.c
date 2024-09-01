@@ -15,11 +15,11 @@ float sinA;
 float sinB;
 float sinC;
 
-const float halfLen = 10; //half the width of the cube
+const float halfLen = 20; //half the width of the cube
 const int screenWidth = 100, screenHeight = 40;
 const float density = 0.6; //how densely we're plotting 3D points
 
-const float distToObj = 60;
+const float distToObj = 100;
 const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.5 * sqrt(2*len*len))) to keep the viewport 1.5x the width of the max 2D projection
 
 float zBuffer[100*40];
@@ -40,17 +40,18 @@ int main() {
 
         precomputeTrig(A, B, C);
 
-        for (float i = -halfLen; i <= halfLen; i += density) { //loop a face, any face
-            for (float j = -halfLen; j <= halfLen; j += density) {
-                calculatePoint(i, j, -halfLen, '#'); //fix one coordinate to create a face
-                calculatePoint(i, j, halfLen, '.');
-                calculatePoint(i, -halfLen, j, ',');
-                calculatePoint(i, halfLen, j, '^');
-                calculatePoint(-halfLen, i, j, '$');
-                calculatePoint(halfLen, i, j, '*');
+        for (float i = -halfLen; i < halfLen; i += density) { //loop a face, any face
+            for (float j = -halfLen; j < halfLen; j += density) {
+                calculatePoint(-i, j, -halfLen, '#'); //back
+                calculatePoint(i, j, halfLen, '#'); //front
+                calculatePoint(-i, -halfLen, j, '&'); //bottom
+                calculatePoint(i, halfLen, j, '&'); //top
+                calculatePoint(-halfLen, -i, j, ','); //left
+                calculatePoint(halfLen, i, j, ','); //right
             }
         }
 
+        // printf("\e[H"); // move cursor to home position, this mitigates screen flicker
         for (int idx = 0; idx < screenHeight*screenWidth; idx++) {
             putchar(idx % screenWidth ? buffer[idx] : '\n'); //this un-encodes 1D data to 2D pixels. If index is multiple of screenwidth, means we need a newline
         }
@@ -59,6 +60,7 @@ int main() {
 
         A += 0.007;
         B += 0.005;
+        C += 0.005;
     }
 
     sigint_handler(SIGINT);
@@ -75,9 +77,9 @@ void precomputeTrig(float A, float B, float C) { //should speed things up so tri
     cosA = cos(A);
     cosB = cos(B);
     cosC = cos(C);
-    sinA = cos(A);
-    sinB = cos(B);
-    sinC = cos(C);
+    sinA = sin(A);
+    sinB = sin(B);
+    sinC = sin(C);
 
     return;
 }
@@ -89,9 +91,9 @@ void calculatePoint(float x, float y, float z, char ch) {
     float zt = z;
 
     //---------3D rotation math----------
-    x = xt*(cosB*cosC) + yt*(sinA*sinB*cosC+cosA*sinC + sinA*sinC) - zt*(cosA*sinB*cosC); 
+    x = xt*(cosB*cosC) + yt*(sinA*sinB*cosC + cosA*sinC) - zt*(sinA*sinC - cosA*sinB*cosC); 
     y = xt*(-cosB*sinC) + yt*(cosA*cosC - sinA*sinB*sinC) + zt*(cosA*sinB*sinC + sinA*cosC);
-    z = xt*(sinB) + yt*(sinA*(-cosB)) + zt*(cosA*cosB);
+    z = xt*(sinB) - yt*(sinA*cosB) + zt*(cosA*cosB);
 
 
     //----------2D projection math---------------------
@@ -99,7 +101,7 @@ void calculatePoint(float x, float y, float z, char ch) {
     float ooz = 1 / (z); //calculate 1/z for projection below
 
     int xp = (int)((screenWidth/2) + distToScreen*x*ooz*2); //cast to int because these are the 2D grid values. x needs to be doubled due to aspect ratio
-    int yp = (int)((screenHeight/2) - distToScreen*y*ooz); //y is negative since higher terminal row numbers = lower down the screen
+    int yp = (int)((screenHeight/2) + distToScreen*y*ooz); //y is negative since higher terminal row numbers = lower down the screen
 
 
     //----------rendering logic----------------------
