@@ -8,10 +8,12 @@
 const int len = 20; //screen is 30 units wide
 float A = 0.0;
 float B = 0.0;
+
+const int screenWidth = 160;
+const int screenHeight = 80;
+
 const float distToObj = 60;
-const float distToScreen =  40; //calculated to keep 16-wide cube about 5/8 occupying screen/ Screen width = 30
-const int screenWidth = 100; //this actually produces square screen because ASCII chars are 2:1 aspect ratio
-const int screenHeight = 50;
+const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.5 * sqrt(2*len*len))) to keep the viewport 1.5x the width of the max 2D projection
 
 //sets up a list of xyz coordinate pairs for a face
 void populate(float arr[len * len][3]) {
@@ -55,7 +57,7 @@ int main() {
         float cosB = cos(B);
         float sinB = sin(B);
 
-        for (int i = 0; i < len * len; i++) {
+        for (int i = 0; i <= len * len; i++) {
             float x = coords[i][0];
             float y = coords[i][1];
             float z = coords[i][2];
@@ -64,38 +66,35 @@ int main() {
             float i = x*cosB + y*cosA*sinB + z*sinA*sinB;
             float j = -x*sinB + y*cosA*cosB + z*sinA*cosB;
             float k = -y*sinA + z*cosA + distToObj; //rotate the points and push Z back
-            float ooz = (k !=0) ?  1/k : 0;
+            float ooz = 1/k;
 
             // printf("Rotated at A:%f and B:%f: %f, %f, %f\n\n", A, B, i, j, k);
 
             //project to 2D
-            int xp = (int)((screenWidth/2) + distToScreen*i*ooz); //cast to int because these are the 2D grid values.
+            int xp = (int)((screenWidth/2) + distToScreen*i*ooz*2); //cast to int because these are the 2D grid values. x needs to be doubled due to aspect ratio
             int yp = (int)((screenHeight/2) - distToScreen*j*ooz); //y is negative since higher terminal row numbers = lower down the screen
 
-            int index = xp + screenWidth * yp; //this is row-major ordering, or, a way to encode 2D data in 1D memory
+            int idx = xp + screenWidth * yp; //this is row-major ordering, or, a way to encode 2D data in 1D memory
 
-            if (index >= 0 && index <= screenHeight * screenWidth) {
-                if (ooz > zBuffer[index]) { //if this pt is closer than what we have in the zBuffer, overwrite it. Means we're encountering a hollow part of the object
-                    zBuffer[index] = ooz;
-                    frame[index] = '#';
-            }}
-
-            // printf("Point #%d (depth %f) will be plotted at %d, %d\n\n", index, ooz, xp, yp);
-
-            
+            if (idx >= 0 && idx <= screenHeight * screenWidth) { 
+                zBuffer[idx] = ooz;
+                frame[idx] = '#';
+                // if (ooz > zBuffer[index]) { //if this pt is closer than what we have in the zBuffer, overwrite it. Means we're encountering multiple 3D points competing for the 2D cell
+                //     zBuffer[index] = ooz;
+                //     frame[index] = '&';}
+            }         
         }
 
         printf("\e[H"); //move to home
 
-        for (int i = 0; i < screenHeight * screenWidth; i++) {
-            putchar(i % screenWidth ? frame[i] : 10); //if this is a new row, print a new row. See row-major ordering step
-
+        for (int i = 0; i <= screenHeight * screenWidth; i++) {
+            putchar(i % screenWidth ? frame[i] : '\n'); //if this is a new row, print a new row.
         }
 
-        usleep(1000000);
+        usleep(10000);
 
-        A += 0.3;
-        B += 0.1;
+        A += 0.005;
+        B += 0.005;
     }
 
     sigint_handler(SIGINT);
