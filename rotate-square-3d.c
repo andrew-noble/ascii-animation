@@ -68,6 +68,7 @@ int main() {
             float i = x*cosB + y*cosA*sinB + z*sinA*sinB;
             float j = -x*sinB + y*cosA*cosB + z*sinA*cosB;
             float k = -y*sinA + z*cosA + distToObj; //rotate the points and push Z back
+            
             float ooz = 1/k;
 
             // printf("Rotated at A:%f and B:%f: %f, %f, %f\n\n", A, B, i, j, k);

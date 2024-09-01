@@ -22,9 +22,14 @@ const int screenHeight = 40;
 const float distToObj = 60;
 const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.5 * sqrt(2*len*len))) to keep the viewport 1.5x the width of the max 2D projection
 
+float zBuffer[screenHeight*screenWidth];
+char buffer[screenHeight*screenWidth];
+
 void sigint_handler(int sig);
 void precomputeTrig(float A, float B, float C);
 void rotate(float *x, float *y, float *z);
+void project(float *x, float *y, float *z);
+void render();
 
 
 int main() {
@@ -65,4 +70,28 @@ void rotate(float *x, float *y, float *z) { //signature says "pass 3 pointers to
     *z = xt*(sinB) + yt*(sinA*(-cosB)) + zt*(cosA*cosB);
 
     return;
+}
+
+void project(float *x, float *y, float *z) {
+    *z = *z + distToObj; //first push the z component back so the object is in front of camera
+
+    float ooz = 1 / (*z); //calculate 1/z for projection below
+
+    int xp = (int)((screenWidth/2) + distToScreen*(*x)*ooz*2); //cast to int because these are the 2D grid values. x needs to be doubled due to aspect ratio
+    int yp = (int)((screenHeight/2) - distToScreen*(*y)*ooz); //y is negative since higher terminal row numbers = lower down the screen
+
+    int idx = xp + screenWidth * yp; //this is "row-major ordering", or, a way to encode 2D data in 1D memory per known row-length
+
+    if (idx >= 0 && idx < screenHeight * screenWidth) { //stops segfaults... this shouldn't be necessary
+        if (ooz > zBuffer[idx]) { //"z-sorting" : ensures we only render the frontmost of many potentially-overlaid points
+            zBuffer[idx] = ooz;
+            buffer[idx] = '#';
+            }
+    }  
+}
+
+void render() {
+    for (int idx = 0; idx < screenHeight*screenWidth; idx++) {
+        putchar(idx % screenWidth ? buffer[idx] : '\n'); //this un-encodes 1D data to 2D pixels. If index is multiple of screenwidth, means we need a newline
+    }
 }
