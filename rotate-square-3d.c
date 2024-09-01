@@ -5,11 +5,11 @@
 #include <signal.h>
 #include <stdlib.h>
 
-const int len = 4; //screen is 30 units wide
+const int len = 20; //screen is 30 units wide
 float A = 0.0;
 float B = 0.0;
-const float distToObj = 10.0;
-const float distToScreen =  4.0; //calculated to keep 16-wide cube about 5/8 occupying screen/ Screen width = 30
+const float distToObj = 60;
+const float distToScreen =  40; //calculated to keep 16-wide cube about 5/8 occupying screen/ Screen width = 30
 const int screenWidth = 100; //this actually produces square screen because ASCII chars are 2:1 aspect ratio
 const int screenHeight = 50;
 
@@ -23,7 +23,7 @@ void populate(float arr[len * len][3]) {
 
         arr[i][2] = 0; //start w/ no z component
 
-        printf("x, y, z: %f, %f, %f for point %d\n", arr[i][0], arr[i][1], arr[i][2], i);
+        // printf("x, y, z: %f, %f, %f for point %d\n", arr[i][0], arr[i][1], arr[i][2], i);
     }
 
     return;
@@ -61,10 +61,12 @@ int main() {
             float z = coords[i][2];
 
             //rotate in 3D
-            float i = x * cosB - x * sinB;
-            float j = y * sinB * cosA - y * cosA * cosB - y * sinA;
-            float k = z * sinA * sinB + z * sinA * cosB + z * cosA + distToObj; //rotate the points and push Z back
-            float ooz = 1/k;
+            float i = x*cosB + y*cosA*sinB + z*sinA*sinB;
+            float j = -x*sinB + y*cosA*cosB + z*sinA*cosB;
+            float k = -y*sinA + z*cosA + distToObj; //rotate the points and push Z back
+            float ooz = (k !=0) ?  1/k : 0;
+
+            // printf("Rotated at A:%f and B:%f: %f, %f, %f\n\n", A, B, i, j, k);
 
             //project to 2D
             int xp = (int)((screenWidth/2) + distToScreen*i*ooz); //cast to int because these are the 2D grid values.
@@ -72,10 +74,15 @@ int main() {
 
             int index = xp + screenWidth * yp; //this is row-major ordering, or, a way to encode 2D data in 1D memory
 
-            if (ooz > zBuffer[index]) { //if this pt is closer than what we have in the zBuffer, overwrite it. Means we're encountering a hollow part of the object
-                zBuffer[index] = ooz;
-                frame[index] = '#';
-            }
+            if (index >= 0 && index <= screenHeight * screenWidth) {
+                if (ooz > zBuffer[index]) { //if this pt is closer than what we have in the zBuffer, overwrite it. Means we're encountering a hollow part of the object
+                    zBuffer[index] = ooz;
+                    frame[index] = '#';
+            }}
+
+            // printf("Point #%d (depth %f) will be plotted at %d, %d\n\n", index, ooz, xp, yp);
+
+            
         }
 
         printf("\e[H"); //move to home
@@ -87,8 +94,8 @@ int main() {
 
         usleep(1000000);
 
-        A += 0.05;
-        B += 0.05;
+        A += 0.3;
+        B += 0.1;
     }
 
     sigint_handler(SIGINT);
