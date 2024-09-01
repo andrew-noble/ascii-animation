@@ -50,7 +50,7 @@ int main() {
     while (1) {
 
         memset(frame, 32, screenWidth*screenHeight); //inits 2D frame cells all to " "
-        memset(zBuffer, 0, screenHeight*screenWidth); //inits ooz to 0 for all frame cells (ooz = 0 corresponds to infinite depth)
+        memset(zBuffer, 0, screenHeight*screenWidth*sizeof(float)); //inits ooz to 0 for all frame cells (ooz = 0 corresponds to infinite depth)
 
         float cosA = cos(A); //precompute trig
         float sinA = sin(A);
@@ -76,12 +76,11 @@ int main() {
 
             int idx = xp + screenWidth * yp; //this is row-major ordering, or, a way to encode 2D data in 1D memory
 
-            if (idx >= 0 && idx <= screenHeight * screenWidth) { 
-                zBuffer[idx] = ooz;
-                frame[idx] = '#';
-                // if (ooz > zBuffer[index]) { //if this pt is closer than what we have in the zBuffer, overwrite it. Means we're encountering multiple 3D points competing for the 2D cell
-                //     zBuffer[index] = ooz;
-                //     frame[index] = '&';}
+            if (idx >= 0 && idx < screenHeight * screenWidth) { 
+                if (ooz > zBuffer[idx]) { //if this pt is closer than what we have in the zBuffer, overwrite it. Means we're encountering multiple 3D points competing for the 2D cell
+                    zBuffer[idx] = ooz;
+                    frame[idx] = '#';
+                    }
             }         
         }
 
