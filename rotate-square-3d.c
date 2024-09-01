@@ -9,8 +9,8 @@ const int len = 20; //screen is 30 units wide
 float A = 0.0;
 float B = 0.0;
 
-const int screenWidth = 160;
-const int screenHeight = 80;
+const int screenWidth = 100;
+const int screenHeight = 40;
 
 const float distToObj = 60;
 const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.5 * sqrt(2*len*len))) to keep the viewport 1.5x the width of the max 2D projection
@@ -49,8 +49,8 @@ int main() {
 
     while (1) {
 
-        memset(frame, 32, screenWidth*screenHeight); //inits 2D frame cells all to " "
-        memset(zBuffer, 0, screenHeight*screenWidth*sizeof(float)); //inits ooz to 0 for all frame cells (ooz = 0 corresponds to infinite depth)
+        memset(frame, ' ', screenWidth*screenHeight); //inits 2D frame cells all to " "
+        memset(zBuffer, 0, screenHeight*screenWidth*sizeof(float)); //since zBuffer is floats, make sure to completely clear it
 
         float cosA = cos(A); //precompute trig
         float sinA = sin(A);
@@ -84,16 +84,16 @@ int main() {
             }         
         }
 
-        printf("\e[H"); //move to home
+        printf("\e[H\e[2J"); //move to home and clear
 
         for (int i = 0; i <= screenHeight * screenWidth; i++) {
-            putchar(i % screenWidth ? frame[i] : '\n'); //if this is a new row, print a new row.
+            putchar(i % screenWidth ? frame[i] : '\n'); //if this is a new row per the row-major ordering, print a new row.
         }
 
         usleep(10000);
 
-        A += 0.005;
-        B += 0.005;
+        A += 0.007;
+        B += 0.007;
     }
 
     sigint_handler(SIGINT);
