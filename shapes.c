@@ -16,9 +16,10 @@ float sinA;
 float sinB;
 float sinC;
 
-const float halfLen = 20; //half the width of the cube
+const float len = 20; //characteristic length of the object. For cube, its half the cubes width, for torus its the radius (CONE)
+const float density = 0.1; //how densely we're plotting 3D points-- used a little differently for each shape
+
 const int screenWidth = 100, screenHeight = 40;
-const float density = 0.6; //how densely we're plotting 3D points
 
 float distToObj = 100;
 const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.5 * sqrt(2*len*len))) to keep the viewport 1.5x the width of the max 2D projection
@@ -26,14 +27,22 @@ const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.
 float zBuffer[100*40];
 char buffer[100*40];
 
+int shape;
+
 void sigint_handler(int sig);
 void precomputeTrig(float A, float B, float C);
+void cube();
+void donut();
+void cone();
 void calculatePoint(float x, float y, float z);
 void render();
 
-int main() {
+int main(int argc, char **argv) {
     signal(SIGINT, sigint_handler); //set up sigint handler for cleaner program quits on C-c
     printf("\e[?25l"); //hide cursor
+
+    printf("Enter 0 for a cube, 1 for a torus, 2 for a cone.");
+    scanf("%d", &shape);
 
     while (1) {
         memset(buffer, ' ', screenHeight*screenWidth); //clear the frame and z buffers
@@ -41,19 +50,16 @@ int main() {
 
         precomputeTrig(A, B, C);
 
-        for (float i = -halfLen; i < halfLen; i += density) { //loop a face, any face
-            for (float j = -halfLen; j < halfLen; j += density) {
-                calculatePoint(-i, j, -halfLen); //back
-                calculatePoint(i, j, halfLen); //front
-                calculatePoint(-i, -halfLen, j); //bottom
-                calculatePoint(i, halfLen, j); //top
-                calculatePoint(-halfLen, -i, j); //left
-                calculatePoint(halfLen, i, j); //right
-            }
+        switch (shape) {
+            case 0:
+                cube();
+            case 1:
+                donut();
+            case 2:
+                cone();
         }
 
         render();
-
         printf("\n(A = %.2f), (B = %.2f), (C = %.2f)\n", A, B, C);
 
         usleep(50000);
@@ -107,24 +113,24 @@ void calculatePoint(float x, float y, float z) {
 
     float I; //illuminance
 
-    if (abs(xt) == halfLen) { //tests if this is left or right face
-        float xn = (xt/halfLen)*cosB*cosC; //notice A is nowhere, thats because normals on the left and right sides wont change with rot about x axis
-        float yn = (xt/halfLen)*(-cosB*sinC);
-        float zn =  (xt/halfLen)*sinB; 
+    if (abs(xt) == len) { //tests if this is left or right face
+        float xn = (xt/len)*cosB*cosC; //notice A is nowhere, thats because normals on the left and right sides wont change with rot about x axis
+        float yn = (xt/len)*(-cosB*sinC);
+        float zn =  (xt/len)*sinB; 
 
         I = yn - zn; //dot product of surface normal above with light vector (0, 1, -1), corresponding to light above and behind camera
 
-    } else if (abs(yt) == halfLen) { //catches if top or bottom
-        float xn = (yt/halfLen)*(sinA*sinB*cosC + cosA*sinC); //the (yt/halfLen) just further differentiates the normal to top or bottom by flipping sign
-        float yn = (yt/halfLen)*(cosA*cosC - sinA*sinB*sinC);
-        float zn = (yt/halfLen)*(-sinA*cosB);
+    } else if (abs(yt) == len) { //catches if top or bottom
+        float xn = (yt/len)*(sinA*sinB*cosC + cosA*sinC); //the (yt/len) just further differentiates the normal to top or bottom by flipping sign
+        float yn = (yt/len)*(cosA*cosC - sinA*sinB*sinC);
+        float zn = (yt/len)*(-sinA*cosB);
 
         I = yn - zn;
 
-    } else if (abs(zt) == halfLen) { //catches if front or back
-        float xn = (zt/halfLen)*(sinA*sinC - cosA*sinB*cosC);
-        float yn = (zt/halfLen)*(cosA*sinB*sinC + sinA*cosC);
-        float zn = (zt/halfLen)*(cosA*cosB);
+    } else if (abs(zt) == len) { //catches if front or back
+        float xn = (zt/len)*(sinA*sinC - cosA*sinB*cosC);
+        float yn = (zt/len)*(cosA*sinB*sinC + sinA*cosC);
+        float zn = (zt/len)*(cosA*cosB);
 
         I = yn - zn;
     }
@@ -153,3 +159,19 @@ void render() {
         putchar(idx % screenWidth ? buffer[idx] : '\n'); //this un-encodes 1D data to 2D pixels. If index is multiple of screenwidth, means we need a newline
     }
 }
+
+void cube() {
+    for (float i = -len; i < len; i += density) { //loop a face, any face
+            for (float j = -len; j < len; j += density) {
+                calculatePoint(-i, j, -len); //back
+                calculatePoint(i, j, len); //front
+                calculatePoint(-i, -len, j); //bottom
+                calculatePoint(i, len, j); //top
+                calculatePoint(-len, -i, j); //left
+                calculatePoint(len, i, j); //right
+            }
+        }
+}
+
+void donut() {}
+void cone() {}
