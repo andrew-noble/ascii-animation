@@ -51,16 +51,16 @@ int main() {
             }
         }
 
-        // printf("\e[H"); // move cursor to home position, this mitigates screen flicker
+        printf("\e[H"); // move cursor to home position, this mitigates screen flicker by making the terminal overwrite last frame instead of scrolling last frame out of view
         for (int idx = 0; idx < screenHeight*screenWidth; idx++) {
             putchar(idx % screenWidth ? buffer[idx] : '\n'); //this un-encodes 1D data to 2D pixels. If index is multiple of screenwidth, means we need a newline
         }
 
-        usleep(10000);
+        usleep(50000);
 
-        A += 0.007;
-        B += 0.005;
-        C += 0.005;
+        A += 0.07;
+        B += 0.05;
+        C += 0.03;
     }
 
     sigint_handler(SIGINT);
@@ -91,7 +91,7 @@ void calculatePoint(float x, float y, float z, char ch) {
     float zt = z;
 
     //---------3D rotation math----------
-    x = xt*(cosB*cosC) + yt*(sinA*sinB*cosC + cosA*sinC) - zt*(sinA*sinC - cosA*sinB*cosC); 
+    x = xt*(cosB*cosC) + yt*(sinA*sinB*cosC + cosA*sinC) + zt*(sinA*sinC - cosA*sinB*cosC); 
     y = xt*(-cosB*sinC) + yt*(cosA*cosC - sinA*sinB*sinC) + zt*(cosA*sinB*sinC + sinA*cosC);
     z = xt*(sinB) - yt*(sinA*cosB) + zt*(cosA*cosB);
 
