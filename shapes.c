@@ -4,6 +4,7 @@
 #include <math.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 float A = 0.0;
 float B = 0.0;
@@ -19,7 +20,7 @@ const float halfLen = 20; //half the width of the cube
 const int screenWidth = 100, screenHeight = 40;
 const float density = 0.6; //how densely we're plotting 3D points
 
-const float distToObj = 100;
+float distToObj = 100;
 const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.5 * sqrt(2*len*len))) to keep the viewport 1.5x the width of the max 2D projection
 
 float zBuffer[100*40];
@@ -52,6 +53,8 @@ int main() {
         }
 
         render();
+
+        printf("\n(A = %.2f), (B = %.2f), (C = %.2f)\n", A, B, C);
 
         usleep(50000);
 
@@ -98,7 +101,7 @@ void calculatePoint(float x, float y, float z) {
     float ooz = 1 / (z); //calculate 1/z for projection below
 
     int xp = (int)((screenWidth/2) + distToScreen*x*ooz*2); //cast to int because these are the 2D grid values. x needs to be doubled due to aspect ratio
-    int yp = (int)((screenHeight/2) + distToScreen*y*ooz); //y is negative since higher terminal row numbers = lower down the screen
+    int yp = (int)((screenHeight/2) - distToScreen*y*ooz); //y is negative since higher terminal row numbers = lower down the screen
 
     //-----------surface normal/illuminance math-------------------
 
@@ -109,30 +112,29 @@ void calculatePoint(float x, float y, float z) {
         float yn = (xt/halfLen)*(-cosB*sinC);
         float zn =  (xt/halfLen)*sinB; 
 
-        I = yn + (-1)*zn; //dot product of surface normal above with light vector (0, 1, -1), corresponding to light above and behind camera
+        I = yn - zn; //dot product of surface normal above with light vector (0, 1, -1), corresponding to light above and behind camera
 
     } else if (abs(yt) == halfLen) { //catches if top or bottom
         float xn = (yt/halfLen)*(sinA*sinB*cosC + cosA*sinC); //the (yt/halfLen) just further differentiates the normal to top or bottom by flipping sign
         float yn = (yt/halfLen)*(cosA*cosC - sinA*sinB*sinC);
         float zn = (yt/halfLen)*(-sinA*cosB);
 
-        I = yn + (-1)*zn;
+        I = yn - zn;
 
     } else if (abs(zt) == halfLen) { //catches if front or back
         float xn = (zt/halfLen)*(sinA*sinC - cosA*sinB*cosC);
         float yn = (zt/halfLen)*(cosA*sinB*sinC + sinA*cosC);
         float zn = (zt/halfLen)*(cosA*cosB);
 
-        I = yn + (-1)*zn;
+        I = yn - zn;
     }
 
     //----------rendering logic----------------------
     int idx = xp + screenWidth * yp; //this is "row-major ordering", or, a way to encode 2D data in 1D memory per known row-length
 
-    if (I > 0) { //I ranges from -sqrt(2) (maximally facing away from light source) to sqrt(2) (facing toward light), if its facing away, just don't plot it
+    if (I >= 0) { //I ranges from -sqrt(2) (maximally facing away from light source) to sqrt(2) (facing toward light), if its facing away, just don't plot it
         if (idx >= 0 && idx < screenHeight * screenWidth) { //stops segfaults... this shouldn't be necessary
             if (ooz > zBuffer[idx]) { //"z-sorting" : ensures we only render the frontmost of many potentially-overlaid points
-
                 zBuffer[idx] = ooz;
 
                 int luminance_index = I * 8; //maps the 0-sqrt(2) illuminance to a 0-11 index
@@ -141,13 +143,13 @@ void calculatePoint(float x, float y, float z) {
         }
     }
     
-
     return;
 }
 
 void render() {
     printf("\e[H"); // move cursor to home position, this mitigates screen flicker by making the terminal overwrite last frame instead of scrolling last frame out of view
-        for (int idx = 0; idx < screenHeight*screenWidth; idx++) {
-            putchar(idx % screenWidth ? buffer[idx] : '\n'); //this un-encodes 1D data to 2D pixels. If index is multiple of screenwidth, means we need a newline
-        }
+
+    for (int idx = 0; idx < screenHeight*screenWidth; idx++) {
+        putchar(idx % screenWidth ? buffer[idx] : '\n'); //this un-encodes 1D data to 2D pixels. If index is multiple of screenwidth, means we need a newline
+    }
 }
