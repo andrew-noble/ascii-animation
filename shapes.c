@@ -27,8 +27,8 @@ char buffer[100*40];
 
 void sigint_handler(int sig);
 void precomputeTrig(float A, float B, float C);
-void calculatePoint(float x, float y, float z, char ch);
-
+void calculatePoint(float x, float y, float z);
+void render();
 
 int main() {
     signal(SIGINT, sigint_handler); //set up sigint handler for cleaner program quits on C-c
@@ -42,19 +42,16 @@ int main() {
 
         for (float i = -halfLen; i < halfLen; i += density) { //loop a face, any face
             for (float j = -halfLen; j < halfLen; j += density) {
-                calculatePoint(-i, j, -halfLen, '#'); //back
-                calculatePoint(i, j, halfLen, '#'); //front
-                calculatePoint(-i, -halfLen, j, '&'); //bottom
-                calculatePoint(i, halfLen, j, '&'); //top
-                calculatePoint(-halfLen, -i, j, ','); //left
-                calculatePoint(halfLen, i, j, ','); //right
+                calculatePoint(-i, j, -halfLen); //back
+                calculatePoint(i, j, halfLen); //front
+                calculatePoint(-i, -halfLen, j); //bottom
+                calculatePoint(i, halfLen, j); //top
+                calculatePoint(-halfLen, -i, j); //left
+                calculatePoint(halfLen, i, j); //right
             }
         }
 
-        printf("\e[H"); // move cursor to home position, this mitigates screen flicker by making the terminal overwrite last frame instead of scrolling last frame out of view
-        for (int idx = 0; idx < screenHeight*screenWidth; idx++) {
-            putchar(idx % screenWidth ? buffer[idx] : '\n'); //this un-encodes 1D data to 2D pixels. If index is multiple of screenwidth, means we need a newline
-        }
+        render();
 
         usleep(50000);
 
@@ -85,7 +82,7 @@ void precomputeTrig(float A, float B, float C) { //should speed things up so tri
 }
 
 
-void calculatePoint(float x, float y, float z, char ch) { 
+void calculatePoint(float x, float y, float z) { 
     float xt = x; //temps to keep the old vals during math
     float yt = y;
     float zt = z;
@@ -103,14 +100,54 @@ void calculatePoint(float x, float y, float z, char ch) {
     int xp = (int)((screenWidth/2) + distToScreen*x*ooz*2); //cast to int because these are the 2D grid values. x needs to be doubled due to aspect ratio
     int yp = (int)((screenHeight/2) + distToScreen*y*ooz); //y is negative since higher terminal row numbers = lower down the screen
 
-    //----------rendering logic----------------------
-    int idx = xp + screenWidth * yp; //this is "row-major ordering", or, a way to encode 2D data in 1D memory per known row-length
-    if (idx >= 0 && idx < screenHeight * screenWidth) { //stops segfaults... this shouldn't be necessary
-        if (ooz > zBuffer[idx]) { //"z-sorting" : ensures we only render the frontmost of many potentially-overlaid points
-            zBuffer[idx] = ooz;
-            buffer[idx] = ch;
-        }
+    //-----------surface normal/illuminance math-------------------
+
+    float I; //illuminance
+
+    if (abs(xt) == halfLen) { //tests if this is left or right face
+        float xn = (xt/halfLen)*cosB*cosC; //notice A is nowhere, thats because normals on the left and right sides wont change with rot about x axis
+        float yn = (xt/halfLen)*(-cosB*sinC);
+        float zn =  (xt/halfLen)*sinB; 
+
+        I = yn + (-1)*zn; //dot product of surface normal above with light vector (0, 1, -1), corresponding to light above and behind camera
+
+    } else if (abs(yt) == halfLen) { //catches if top or bottom
+        float xn = (yt/halfLen)*(sinA*sinB*cosC + cosA*sinC); //the (yt/halfLen) just further differentiates the normal to top or bottom by flipping sign
+        float yn = (yt/halfLen)*(cosA*cosC - sinA*sinB*sinC);
+        float zn = (yt/halfLen)*(-sinA*cosB);
+
+        I = yn + (-1)*zn;
+
+    } else if (abs(zt) == halfLen) { //catches if front or back
+        float xn = (zt/halfLen)*(sinA*sinC - cosA*sinB*cosC);
+        float yn = (zt/halfLen)*(cosA*sinB*sinC + sinA*cosC);
+        float zn = (zt/halfLen)*(cosA*cosB);
+
+        I = yn + (-1)*zn;
     }
 
+    //----------rendering logic----------------------
+    int idx = xp + screenWidth * yp; //this is "row-major ordering", or, a way to encode 2D data in 1D memory per known row-length
+
+    if (I > 0) { //I ranges from -sqrt(2) (maximally facing away from light source) to sqrt(2) (facing toward light), if its facing away, just don't plot it
+        if (idx >= 0 && idx < screenHeight * screenWidth) { //stops segfaults... this shouldn't be necessary
+            if (ooz > zBuffer[idx]) { //"z-sorting" : ensures we only render the frontmost of many potentially-overlaid points
+
+                zBuffer[idx] = ooz;
+
+                int luminance_index = I * 8; //maps the 0-sqrt(2) illuminance to a 0-11 index
+                buffer[idx] = ".,-~:;=!*#$@"[luminance_index];
+            }
+        }
+    }
+    
+
     return;
+}
+
+void render() {
+    printf("\e[H"); // move cursor to home position, this mitigates screen flicker by making the terminal overwrite last frame instead of scrolling last frame out of view
+        for (int idx = 0; idx < screenHeight*screenWidth; idx++) {
+            putchar(idx % screenWidth ? buffer[idx] : '\n'); //this un-encodes 1D data to 2D pixels. If index is multiple of screenwidth, means we need a newline
+        }
 }
