@@ -31,10 +31,10 @@ int shape;
 
 void sigint_handler(int sig);
 void precomputeTrig(float A, float B, float C);
+void calculatePoint(float x, float y, float z);
 void cube();
 void donut();
 void cone();
-void calculatePoint(float x, float y, float z);
 void render();
 
 int main(int argc, char **argv) {
@@ -53,10 +53,13 @@ int main(int argc, char **argv) {
         switch (shape) {
             case 0:
                 cube();
+                break;
             case 1:
                 donut();
+                break;
             case 2:
                 cone();
+                break;
         }
 
         render();
