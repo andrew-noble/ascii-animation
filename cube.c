@@ -26,7 +26,6 @@ float zBuffer[100*40];
 char buffer[100*40];
 
 void sigint_handler(int sig);
-void precomputeTrig(float A, float B, float C);
 void calculatePoint(float x, float y, float z, char ch);
 
 
