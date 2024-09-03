@@ -38,7 +38,12 @@ int main() {
         memset(buffer, ' ', screenHeight*screenWidth); //clear the frame and z buffers
         memset(zBuffer, 0, screenHeight*screenWidth * sizeof(float)); //need to account for 4-byte length of floats
 
-        precomputeTrig(A, B, C);
+        cosA = cos(A); //precompute trig
+        cosB = cos(B);
+        cosC = cos(C);
+        sinA = sin(A);
+        sinB = sin(B);
+        sinC = sin(C);
 
         for (float i = -halfLen; i < halfLen; i += density) { //loop a face, any face
             for (float j = -halfLen; j < halfLen; j += density) {
@@ -72,18 +77,6 @@ void sigint_handler(int sig) {
     printf("\e[2J\e[H\e[?25h");
     exit(0);
 }
-
-void precomputeTrig(float A, float B, float C) { //should speed things up so trig isn't recalculated for each point
-    cosA = cos(A);
-    cosB = cos(B);
-    cosC = cos(C);
-    sinA = sin(A);
-    sinB = sin(B);
-    sinC = sin(C);
-
-    return;
-}
-
 
 void calculatePoint(float x, float y, float z, char ch) { 
     float xt = x; //temps to keep the old vals during math
