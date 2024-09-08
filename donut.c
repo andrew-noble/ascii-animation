@@ -18,8 +18,8 @@ const float r = 10; //minor axis;
 const int screenWidth = 100, screenHeight = 40;
 const float increment = 0.06; //smaller --> more densly plotting points
 
-const float distToObj = 100;
-const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.5 * sqrt(2*len*len))) to keep the viewport 1.5x the width of the max 2D projection
+const float distToObj = 120;
+const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.5 * 2*(R+r)))) to keep the viewport 1.5x the width of the max 2D projection
 
 float zBuffer[100*40];
 char buffer[100*40];
@@ -67,22 +67,23 @@ int main() {
 
                 //----------illluminance math---------------------
 
-                //this is the dot product of *rotated* surface normal (costheta, sintheta, 0) with (0, 1, -1) a vector representing light above and behind the camera
-                                
-                float I = cosphi*costheta*sinB - cosA*costheta*sinphi - sinA*sintheta + cosB*(cosA*sintheta - costheta*sinA*sinphi);
+                //Gotta work on this.
 
                 //----------rendering logic----------------------
                 int idx = xp + screenWidth * yp; //this is "row-major ordering", or, a way to encode 2D data in 1D memory per known row-length
 
-                if (I > 0) { //"backface culling" -- only render faces that are pointing to us
-                    if (ooz > zBuffer[idx]) { //"z-sorting" : ensures we only render the frontmost of many potentially-overlaid points
-                        zBuffer[idx] = ooz;
+                if (idx >= 0 && idx < screenHeight*screenWidth) {
+                    if (I > 0) { //"backface culling" -- only render faces that are pointing to us
+                        if (ooz > zBuffer[idx]) { //"z-sorting" : ensures we only render the frontmost of many potentially-overlaid points
+                            zBuffer[idx] = ooz;
 
-                        int luminance_index = I*8; //maps the 0-sqrt(2) illuminance to a 0-11 index
-                        
-                        buffer[idx] = ".,-~:;=!*#$@"[luminance_index];
-                    }
-                } 
+                            int luminance_index = I*8; //maps the 0-sqrt(2) illuminance to a 0-11 index
+                            
+                            buffer[idx] = ".,-~:;=!*#$@"[luminance_index];
+                            // buffer[idx] = '#';
+                        }
+                    } 
+                }
             }
         }
 
