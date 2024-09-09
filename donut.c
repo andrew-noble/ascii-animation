@@ -39,11 +39,11 @@ int main() {
         float cosA = cos(A), cosB = cos(B), cosC = cos(C);
         float sinA = sin(A), sinB = sin(B), sinC = sin(C);
 
-        for (float theta = 0; theta <= 2*M_PI; theta += increment) { //these angle loops construct the torus
+        for (float theta = 0; theta < 2*M_PI; theta += increment) { //these angle loops construct the torus
 
             float costheta = cos(theta), sintheta = sin(theta);
 
-            for (float phi = 0; phi <= 2*M_PI; phi += increment) {
+            for (float phi = 0; phi < 2*M_PI; phi += increment) {
 
                 float cosphi = cos(phi), sinphi = sin(phi);
 
