@@ -78,14 +78,9 @@ void calculatePoint(float x, float y, float z, char ch) {
     float zt = z;
 
     //---------3D rotation math----------
-    // x = xt*(cosB*cosC) + yt*(sinA*sinB*cosC + cosA*sinC) + zt*(sinA*sinC - cosA*sinB*cosC); 
-    // y = xt*(-cosB*sinC) + yt*(cosA*cosC - sinA*sinB*sinC) + zt*(cosA*sinB*sinC + sinA*cosC);
-    // z = xt*(sinB) - yt*(sinA*cosB) + zt*(cosA*cosB);
-
     float xr = x*(cosC*cosB) + y*(cosC*sinB*sinA - sinC*cosA) + z*(sinC*sinA + cosC*sinB*cosA);
     float yr = x*(sinC*cosB) + y*(cosC*cosA + sinC*sinB*sinA) + z*(sinC*sinB*cosA - cosC*sinA);
     float zr = x*(-sinB) + y*(cosB*sinA) + z*(cosB*cosA);
-
 
     //----------2D projection math---------------------
     zr = zr + distToObj; //first push the z component back so the object is in front of camera
