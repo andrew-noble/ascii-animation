@@ -5,15 +5,9 @@
 #include <signal.h>
 #include <stdlib.h>
 
-float A = 0.0;
-float B = 0.0;
-float C = 0.0;
-float cosA;
-float cosB;
-float cosC;
-float sinA;
-float sinB;
-float sinC;
+float A = 0.0, B = 0.0, C = 0.0;
+float cosA, cosB, cosC;
+float sinA, sinB, sinC;
 
 const float halfLen = 20; //half the width of the cube
 const int screenWidth = 100, screenHeight = 40;
@@ -73,10 +67,6 @@ void sigint_handler(int sig) {
 }
 
 void calculatePoint(float x, float y, float z, char ch) { 
-    float xt = x; //temps to keep the old vals during math
-    float yt = y;
-    float zt = z;
-
     //---------3D rotation math----------
     float xr = x*(cosC*cosB) + y*(cosC*sinB*sinA - sinC*cosA) + z*(sinC*sinA + cosC*sinB*cosA);
     float yr = x*(sinC*cosB) + y*(cosC*cosA + sinC*sinB*sinA) + z*(sinC*sinB*cosA - cosC*sinA);
@@ -87,10 +77,11 @@ void calculatePoint(float x, float y, float z, char ch) {
     float ooz = 1 / zr; //calculate 1/z for projection below
 
     int xp = (int)((screenWidth/2) + distToScreen*xr*ooz*2); //cast to int because these are the 2D grid values. x needs to be doubled due to aspect ratio
-    int yp = (int)((screenHeight/2) + distToScreen*yr*ooz); //y is negative since higher terminal row numbers = lower down the screen
+    int yp = (int)((screenHeight/2) - distToScreen*yr*ooz); //y is negative since higher terminal row numbers = lower down the screen
 
     //----------rendering logic----------------------
     int idx = xp + screenWidth * yp; //this is "row-major ordering", or, a way to encode 2D data in 1D memory per known row-length
+    
     if (idx >= 0 && idx < screenHeight * screenWidth) { //stops segfaults... this shouldn't be necessary
         if (ooz > zBuffer[idx]) { //"z-sorting" : ensures we only render the frontmost of many potentially-overlaid points
             zBuffer[idx] = ooz;

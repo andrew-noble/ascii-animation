@@ -9,20 +9,13 @@
 #define M_PI 3.1415926535897932384626433832
 #endif
 
-float A = 0.0;
-float B = 0.0;
-float C = 0.0;
-float cosA;
-float cosB;
-float cosC;
-float sinA;
-float sinB;
-float sinC;
+float A = 0.0, B = 0.0, C = 0.0;
+float cosA, cosB, cosC;
+float sinA, sinB, sinC;
 
-const float len = 40; //radius of cone
-const float height = 120;
+const float len = 20; //half the width of the cube
 const int screenWidth = 100, screenHeight = 40;
-const float increment = 0.01; //how densely we're plotting 3D points
+const float increment = 0.05; //how densely we're plotting 3D points
 
 const float distToObj = 100;
 const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.5 * sqrt(2*len*len))) to keep the viewport 1.5x the width of the max 2D projection
@@ -58,10 +51,10 @@ int main() {
             }
         }
 
-        // printf("\e[H"); // move cursor to home position, this mitigates screen flicker by making the terminal overwrite last frame instead of scrolling last frame out of view
-        // for (int idx = 0; idx < screenHeight*screenWidth; idx) {
-        //     putchar(idx % screenWidth ? buffer[idx] : '-'); //this un-encodes 1D data to 2D pixels. If index is multiple of screenwidth, means we need a newline
-        // }
+        printf("\e[H"); // move cursor to home position, this mitigates screen flicker by making the terminal overwrite last frame instead of scrolling last frame out of view
+        for (int idx = 0; idx < screenHeight*screenWidth; idx++) {
+            putchar(idx % screenWidth ? buffer[idx] : '\n'); //this un-encodes 1D data to 2D pixels. If index is multiple of screenwidth, means we need a newline
+        }
 
         usleep(50000);
 
@@ -80,15 +73,11 @@ void sigint_handler(int sig) {
     exit(0);
 }
 
-void calculatePoint(float x, float y, float z, char ch) { 
-    float xt = x; //temps to keep the old vals during math
-    float yt = y;
-    float zt = z;
-
+void calculatePoint(float x, float y, float z, char ch) {
     //---------3D rotation math----------
-    float xr = xt*(cosC*cosB) + yt*(cosC*sinB*sinA - sinC*cosA) + zt*(sinC*sinA + cosC*sinB*cosA);
-    float yr = xt*(sinC*cosB) + yt*(cosC*cosA + sinC*sinB*sinA) + zt*(sinC*sinB*cosA - cosC*sinA);
-    float zr = xt*(-sinB) + yt*(cosB*sinA) + zt*(cosB*cosA);
+    float xr = x*(cosC*cosB) + y*(cosC*sinB*sinA - sinC*cosA) + z*(sinC*sinA + cosC*sinB*cosA);
+    float yr = x*(sinC*cosB) + y*(cosC*cosA + sinC*sinB*sinA) + z*(sinC*sinB*cosA - cosC*sinA);
+    float zr = x*(-sinB) + y*(cosB*sinA) + z*(cosB*cosA);
 
     //----------2D projection math---------------------
     zr = zr + distToObj; //first push the z component back so the object is in front of camera
@@ -98,13 +87,8 @@ void calculatePoint(float x, float y, float z, char ch) {
     int yp = (int)((screenHeight/2) - distToScreen*yr*ooz); //y is negative since higher terminal row numbers = lower down the screen
 
     //----------rendering logic----------------------
-
-    // printf("(cosA, cosB, cosC): %f, %f, %f\n", cosA, cosB, cosC);
-    printf("(A, B, C): %f, %f, %f\n", A, B, C);
-    // printf("(xr, yr, zr): %f, %f, %f | (xp, yp): %d, %d\n", xr, yr, zr, xp, yp);
-
     int idx = xp + screenWidth * yp; //this is "row-major ordering", or, a way to encode 2D data in 1D memory per known row-length
-
+    
     if (idx >= 0 && idx < screenHeight * screenWidth) { //stops segfaults... this shouldn't be necessary
         if (ooz > zBuffer[idx]) { //"z-sorting" : ensures we only render the frontmost of many potentially-overlaid points
             zBuffer[idx] = ooz;
