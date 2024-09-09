@@ -67,7 +67,11 @@ int main() {
 
                 //----------illluminance math---------------------
 
-                //Gotta work on this.
+                float xn = costheta*cosphi;
+                float yn = sintheta;
+                float zn = costheta*sinphi;
+
+                float I = xn*(sinC*cosB + sinB) + yn*(sinC*sinB*sinA + cosC*cosA - cosB*sinA) + zn*(sinC*sinB*cosA - cosC*sinA - cosB*cosA);
 
                 //----------rendering logic----------------------
                 int idx = xp + screenWidth * yp; //this is "row-major ordering", or, a way to encode 2D data in 1D memory per known row-length
@@ -80,7 +84,6 @@ int main() {
                             int luminance_index = I*8; //maps the 0-sqrt(2) illuminance to a 0-11 index
                             
                             buffer[idx] = ".,-~:;=!*#$@"[luminance_index];
-                            // buffer[idx] = '#';
                         }
                     } 
                 }
