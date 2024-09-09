@@ -17,7 +17,7 @@ float sinC;
 
 const float halfLen = 20; //half the width of the cube
 const int screenWidth = 100, screenHeight = 40;
-const float density = 0.6; //how densely we're plotting 3D points
+const float density = 0.5; //how densely we're plotting 3D points
 
 const float distToObj = 100;
 const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.5 * sqrt(2*len*len))) to keep the viewport 1.5x the width of the max 2D projection

@@ -22,7 +22,7 @@ float sinC;
 const float len = 20; //radius of cone
 const float height = 60; //height of cone
 const int screenWidth = 100, screenHeight = 40;
-const float increment = 0.06; //how densely we're plotting 3D points
+const float increment = 0.1; //how densely we're plotting 3D points
 
 const float distToObj = 100;
 const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.5 * sqrt(2*len*len))) to keep the viewport 1.5x the width of the max 2D projection
@@ -45,16 +45,17 @@ int main() {
         cosA = cos(A), cosB = cos(B), cosC = cos(C); //precompute trig
         sinA = sin(A), sinB = sin(B), sinC = sin(C);
 
-        for (float r = 0; r < len; r = increment) { //first integrate over radial dimension
-            float h_current = 9 - 3*r; //precompute the cone's height at this radius
+        for (float r = 0; r < len; r += increment) { //first integrate over radial dimension
 
-            for (float theta = 0; theta < 2*M_PI; theta = increment) { //then revolve around the theta dimension
+            // float y = 3 - r; //precompute the cone's height at this radius
 
+            for (float theta = 0; theta < 2*M_PI; theta += increment) { //then revolve around the theta dimension
                 float costheta = cos(theta), sintheta = sin(theta);
 
-                // calculatePoint(r*costheta, h_current, r*sintheta, '@'); //cone's "hat"
+                float x = r*costheta, z = r*sintheta;
 
-                calculatePoint(r*costheta, 0, r*sintheta, '*'); //cone's base
+                // calculatePoint(x, y, z, '@'); //cone's "hat"
+                calculatePoint(x, 0, z, '*'); //cone's base
             }
         }
 
@@ -100,6 +101,9 @@ void calculatePoint(float x, float y, float z, char ch) {
 
     //----------rendering logic----------------------
     int idx = xp + screenWidth * yp; //this is "row-major ordering", or, a way to encode 2D data in 1D memory per known row-length
+
+    printf("hi\n");
+
     if (idx >= 0 && idx < screenHeight * screenWidth) { //stops segfaults... this shouldn't be necessary
         if (ooz > zBuffer[idx]) { //"z-sorting" : ensures we only render the frontmost of many potentially-overlaid points
             zBuffer[idx] = ooz;
