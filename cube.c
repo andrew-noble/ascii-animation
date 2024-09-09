@@ -28,7 +28,6 @@ char buffer[100*40];
 void sigint_handler(int sig);
 void calculatePoint(float x, float y, float z, char ch);
 
-
 int main() {
     signal(SIGINT, sigint_handler); //set up sigint handler for cleaner program quits on C-c
     printf("\e[?25l"); //hide cursor
@@ -79,17 +78,21 @@ void calculatePoint(float x, float y, float z, char ch) {
     float zt = z;
 
     //---------3D rotation math----------
-    x = xt*(cosB*cosC) + yt*(sinA*sinB*cosC + cosA*sinC) + zt*(sinA*sinC - cosA*sinB*cosC); 
-    y = xt*(-cosB*sinC) + yt*(cosA*cosC - sinA*sinB*sinC) + zt*(cosA*sinB*sinC + sinA*cosC);
-    z = xt*(sinB) - yt*(sinA*cosB) + zt*(cosA*cosB);
+    // x = xt*(cosB*cosC) + yt*(sinA*sinB*cosC + cosA*sinC) + zt*(sinA*sinC - cosA*sinB*cosC); 
+    // y = xt*(-cosB*sinC) + yt*(cosA*cosC - sinA*sinB*sinC) + zt*(cosA*sinB*sinC + sinA*cosC);
+    // z = xt*(sinB) - yt*(sinA*cosB) + zt*(cosA*cosB);
+
+    float xr = x*(cosC*cosB) + y*(cosC*sinB*sinA - sinC*cosA) + z*(sinC*sinA + cosC*sinB*cosA);
+    float yr = x*(sinC*cosB) + y*(cosC*cosA + sinC*sinB*sinA) + z*(sinC*sinB*cosA - cosC*sinA);
+    float zr = x*(-sinB) + y*(cosB*sinA) + z*(cosB*cosA);
 
 
     //----------2D projection math---------------------
-    z = z + distToObj; //first push the z component back so the object is in front of camera
-    float ooz = 1 / (z); //calculate 1/z for projection below
+    zr = zr + distToObj; //first push the z component back so the object is in front of camera
+    float ooz = 1 / zr; //calculate 1/z for projection below
 
-    int xp = (int)((screenWidth/2) + distToScreen*x*ooz*2); //cast to int because these are the 2D grid values. x needs to be doubled due to aspect ratio
-    int yp = (int)((screenHeight/2) + distToScreen*y*ooz); //y is negative since higher terminal row numbers = lower down the screen
+    int xp = (int)((screenWidth/2) + distToScreen*xr*ooz*2); //cast to int because these are the 2D grid values. x needs to be doubled due to aspect ratio
+    int yp = (int)((screenHeight/2) + distToScreen*yr*ooz); //y is negative since higher terminal row numbers = lower down the screen
 
     //----------rendering logic----------------------
     int idx = xp + screenWidth * yp; //this is "row-major ordering", or, a way to encode 2D data in 1D memory per known row-length
