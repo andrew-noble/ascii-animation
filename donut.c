@@ -53,9 +53,9 @@ int main() {
                 float z = (R + r*costheta)*sinphi;
 
                 //---------3D rotation math----------
-                float xr = x*(cosB*cosC) + y*(sinA*sinB*cosC + cosA*sinC) + z*(sinA*sinC - cosA*sinB*cosC); 
-                float yr = x*(-cosB*sinC) + y*(cosA*cosC - sinA*sinB*sinC) + z*(cosA*sinB*sinC + sinA*cosC);
-                float zr = x*(sinB) - y*(sinA*cosB) + z*(cosA*cosB);
+                float xr = x*(cosC*cosB) + y*(cosC*sinB*sinA - sinA*cosA) + z*(sinC*sinA + cosC*sinB*cosA);
+                float yr = x*(sinC*cosB) + y*(cosC*cosA + sinC*sinB*sinA) + z*(sinC*sinB*cosA -cosC*sinA);
+                float zr = x*(-sinB) + y*(cosB*sinA) + z*(cosB*cosA);
 
 
                 //----------2D projection math---------------------
