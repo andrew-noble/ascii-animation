@@ -3,7 +3,7 @@
 What started as a simple progression to learn the basic syntax and behavior of C turned into a 3 week incursion
 into the (very) basics of computer graphics and a huge walk down memory lane of college linear algebra. Super fun!
 
-[GIF of rotating cube](./cube.gif)
+![cube](https://github.com/user-attachments/assets/a9ff3001-b2ff-44cd-aced-4168e47a9415)
 
 ## 3D Animation
 
