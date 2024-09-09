@@ -46,7 +46,7 @@ int main() {
 
                 float x = r*costheta, z = r*sintheta;
 
-                // calculatePoint(x, y, z, '@'); //cone's "hat"
+                calculatePoint(x, y, z, '@'); //cone's "hat"
                 calculatePoint(x, 0, z, '*'); //cone's base
             }
         }
