@@ -17,7 +17,7 @@ float sinC;
 
 const float halfLen = 20; //half the width of the cube
 const int screenWidth = 100, screenHeight = 40;
-const float density = 0.5; //how densely we're plotting 3D points
+const float increment = 0.5; //how densely we're plotting 3D points
 
 const float distToObj = 100;
 const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.5 * sqrt(2*len*len))) to keep the viewport 1.5x the width of the max 2D projection
@@ -40,8 +40,8 @@ int main() {
         cosA = cos(A), cosB = cos(B), cosC = cos(C); //precompute trig
         sinA = sin(A), sinB = sin(B), sinC = sin(C);
 
-        for (float i = -halfLen; i < halfLen; i += density) { //loop a face, any face
-            for (float j = -halfLen; j < halfLen; j += density) {
+        for (float i = -halfLen; i < halfLen; i += increment) { //loop a face, any face
+            for (float j = -halfLen; j < halfLen; j += increment) {
                 calculatePoint(-i, j, -halfLen, '#'); //back
                 calculatePoint(i, j, halfLen, '#'); //front
                 calculatePoint(-i, -halfLen, j, '&'); //bottom
