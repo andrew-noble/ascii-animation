@@ -5,14 +5,14 @@ into the (very) basics of computer graphics and a huge walk down memory lane of 
 
 ![cube](https://github.com/user-attachments/assets/a9ff3001-b2ff-44cd-aced-4168e47a9415)
 
-## 3D Animation
+## 3D Animations
 
 1. donut.c: this is the coolest one, a directionally-illuminated rotating torus, and follows the famous program layed out here: https://www.a1k0n.net/2011/07/20/donut-math.html
 2. cube.c
 3. cone.c
 4. rotate-square-3D.c: my first 3D animation, just rotating a square plate in 3D
 
-## 2D Animation
+## 2D Animations
 
 5. rotate-square.c: rotating a square in 2D
 6. rectangle.c: first time taking user input with scanf()
