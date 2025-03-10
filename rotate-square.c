@@ -57,7 +57,7 @@ int main() {
     return 0;
 }
 
-//sets up a list of x-y coordinate pairs
+//sets up a list of x-y coordinate pairs in a really neat way using modulus cycling
 void populate(float arr[LEN * LEN][2]) {
     for (int i = 0; i < LEN * LEN; i++) { //loop 16 times to create 16 different x-y pairs
         arr[i][0] = fmod(i, LEN); //produces a cycle through 0,1,2,3,0,1,2... (but in floats via float modulus)
