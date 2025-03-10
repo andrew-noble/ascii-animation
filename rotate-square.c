@@ -63,7 +63,7 @@ void populate(float arr[LEN * LEN][2]) {
         arr[i][0] = fmod(i, LEN); //produces a cycle through 0,1,2,3,0,1,2... (but in floats via float modulus)
 
         //took me an eternity to figure this out. Here, we intentionally ignore the remainder through floor division.
-        arr[i][1] = floor(i / LEN);  //prodcuces 0000111122223333 (but in floats)
+        arr[i][1] = floor(i / LEN);  //produces 0000111122223333 (but in floats)
 
         // printf("x, y for i %d: %d, %d\n", i, arr[i][0], arr[i][1]);
     }
