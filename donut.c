@@ -13,10 +13,10 @@ float A = 0.0;
 float B = 0.0;
 float C = 0.0;
 
-const float R = 20; //major axis of the torus
-const float r = 10; //minor axis;
+const float R = 20; // major axis of the torus
+const float r = 10; // minor axis;
 const int screenWidth = 100, screenHeight = 40;
-const float increment = 0.06; //smaller --> more densly plotting points
+const float increment = 0.06; // smaller --> more densly plotting points
 
 const float distToObj = 120;
 const float distToScreen = 40; // calculated with: (screenWidth * distToObj)/(1.5 * 2*(R+r)))) to keep the viewport 1.5x the width of the max 2D projection
@@ -27,19 +27,21 @@ char buffer[100*40];
 void sigint_handler(int sig);
 void calculatePoint(float x, float y, float z, char ch);
 
+// theta = major angle around torus, phi = minor angle
+
 int main() {
-    signal(SIGINT, sigint_handler); //set up sigint handler for cleaner program quits on C-c
-    printf("\e[?25l"); //hide cursor
+    signal(SIGINT, sigint_handler); // set up sigint handler for cleaner program quits on C-c
+    printf("\e[?25l"); // hide cursor
 
     while (1) {
-        memset(buffer, ' ', screenHeight*screenWidth); //clear the frame and z buffers
-        memset(zBuffer, 0, screenHeight*screenWidth * sizeof(float)); //need to account for 4-byte length of floats
+        memset(buffer, ' ', screenHeight*screenWidth); // clear the frame and z buffers
+        memset(zBuffer, 0, screenHeight*screenWidth * sizeof(float)); // need to account for 4-byte length of floats
 
-        //precompute trig
+        // precompute trig
         float cosA = cos(A), cosB = cos(B), cosC = cos(C);
         float sinA = sin(A), sinB = sin(B), sinC = sin(C);
 
-        for (float theta = 0; theta < 2*M_PI; theta += increment) { //these angle loops construct the torus
+        for (float theta = 0; theta < 2*M_PI; theta += increment) { // these angle loops construct the torus
 
             float costheta = cos(theta), sintheta = sin(theta);
 
@@ -48,7 +50,7 @@ int main() {
                 float cosphi = cos(phi), sinphi = sin(phi);
 
                 //------torus construction math------
-                float x = (R + r*costheta)*cosphi; //the unrotated xyz coords of of the torus
+                float x = (R + r*costheta)*cosphi; // the unrotated xyz coords of of the torus
                 float y = r*sintheta;
                 float z = (R + r*costheta)*sinphi;
 
@@ -59,14 +61,13 @@ int main() {
 
 
                 //----------2D projection math---------------------
-                zr = zr + distToObj; //first push the z component back so the object is in front of camera
-                float ooz = 1/zr; //calculate 1/z for projection below
+                zr = zr + distToObj; // first push the z component back so the object is in front of camera
+                float ooz = 1/zr; // calculate 1/z for projection below
 
-                int xp = (int)((screenWidth/2) + distToScreen*xr*ooz*2); //cast to int because these are the 2D grid values. x needs to be doubled due to aspect ratio
-                int yp = (int)((screenHeight/2) - distToScreen*yr*ooz); //y is negative since higher terminal row numbers = lower down the screen
+                int xp = (int)((screenWidth/2) + distToScreen*xr*ooz*2); // cast to int because these are the 2D grid values. x needs to be doubled due to aspect ratio of terminal chars
+                int yp = (int)((screenHeight/2) - distToScreen*yr*ooz); // y is negative since higher terminal row numbers = lower down the screen
 
                 //----------illluminance math---------------------
-
                 float xn = costheta*cosphi;
                 float yn = sintheta;
                 float zn = costheta*sinphi;
@@ -74,15 +75,15 @@ int main() {
                 float I = xn*(sinC*cosB + sinB) + yn*(sinC*sinB*sinA + cosC*cosA - cosB*sinA) + zn*(sinC*sinB*cosA - cosC*sinA - cosB*cosA);
 
                 //----------rendering logic----------------------
-                int idx = xp + screenWidth * yp; //this is "row-major ordering", or, a way to encode 2D data in 1D memory per known row-length
+                int idx = xp + screenWidth * yp; // this is "row-major ordering", or, a way to encode 2D data in 1D memory per known row-length
 
                 if (idx >= 0 && idx < screenHeight*screenWidth) {
-                    if (I > 0) { //"backface culling" -- only render faces that are pointing to us
-                        if (ooz > zBuffer[idx]) { //"z-sorting" : ensures we only render the frontmost of many potentially-overlaid points
+                    if (I > 0) { // "backface culling" -- only render faces that are pointing to us
+                        if (ooz > zBuffer[idx]) { // "z-sorting" : ensures we only render the frontmost of many potentially-overlaid points
                             zBuffer[idx] = ooz;
 
-                            int luminance_index = I*8; //maps the 0-sqrt(2) illuminance to a 0-11 index
-                            
+                            int luminance_index = I*8; // maps the 0-sqrt(2) illuminance to a 0-11 index
+
                             buffer[idx] = ".,-~:;=!*#$@"[luminance_index];
                         }
                     } 
@@ -92,7 +93,7 @@ int main() {
 
         printf("\e[H"); // move cursor to home position, this mitigates screen flicker by making the terminal overwrite last frame instead of scrolling last frame out of view
         for (int idx = 0; idx < screenHeight*screenWidth; idx++) {
-            putchar(idx % screenWidth ? buffer[idx] : '\n'); //this un-encodes 1D data to 2D pixels. If index is multiple of screenwidth, means we need a newline
+            putchar(idx % screenWidth ? buffer[idx] : '\n'); // this un-encodes 1D data to 2D pixels. If index is multiple of screenwidth, means we need a newline
         }
 
         usleep(50000);
